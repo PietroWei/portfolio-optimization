@@ -1,0 +1,10 @@
+# This file is used to install the required packages for the project.
+# It is recommended to use a virtual environment to avoid conflicts with other projects.
+pandas
+numpy
+matplotlib
+seaborn
+yfinance
+scipy
+cvxpy
+streamlit

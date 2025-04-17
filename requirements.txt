@@ -8,3 +8,7 @@ yfinance
 scipy
 cvxpy
 streamlit
+PyPortfolioOpt
+riskfolio-lib
+plotly
+lxml  # Added for parsing HTML tables

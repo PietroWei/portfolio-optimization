@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pypfopt import EfficientFrontier, risk_models, expected_returns, HRPOpt 
 
-def optimize_portfolio(df, model, include_rf=False, max_allocation=None, no_short_selling=False):
+def optimize_portfolio(df, model, include_rf=False, max_allocation=None, no_short_selling=True):
 
     # Ensure the index is in datetime format
     if not isinstance(df.index, pd.DatetimeIndex):

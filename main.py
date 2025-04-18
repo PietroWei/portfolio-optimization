@@ -4,6 +4,8 @@ import numpy as np
 import yfinance as yf
 import plotly.express as px
 from datetime import datetime, timedelta
+import os
+from utils.charts import plot_efficient_frontier, plot_allocation
 
 # Page config
 st.set_page_config(
@@ -49,6 +51,29 @@ rebalance_freq = st.sidebar.selectbox(
 
 include_rf = st.sidebar.checkbox("Include Risk-Free Asset", value=False)
 
+# Load weights based on the selected model
+weights_data = None
+if "Minimum Variance" in models_selected:
+    weights_file = "data/minimum_variance_weights.csv"
+elif "Modern Portfolio Theory" in models_selected:
+    weights_file = "modern_portfolio_theory_weights.csv"
+# Add more cases here for other models if needed
+else:
+    weights_file = None
+
+if weights_file and os.path.exists(weights_file):
+    weights_data = pd.read_csv(weights_file, index_col=0)
+    # Filter weights for the first date present
+    first_date_weights = weights_data.iloc[0, 1:].to_dict() if not weights_data.empty else None
+    first_date_weights = pd.Series(first_date_weights)
+
+else:
+    first_date_weights = None
+    if weights_file:
+        st.warning(f"File {weights_file} not found. Charts for the selected model will not be displayed.")
+    else:
+        st.warning("No weights file specified for the selected model.")
+
 # Main content area with tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Portfolio Analysis", "Backtesting", "Model Explanation", "Export Options"])
 
@@ -56,10 +81,34 @@ with tab1:
     st.header("Portfolio Analysis")
     st.info("Compare the efficient frontier and portfolio allocation for selected models.")
 
-    # Display charts for selected models
+    # Display efficient frontier for the first selected model
     for model in models_selected:
-        st.subheader(f"{model}: Efficient Frontier & Portfolio Allocation")
-        st.write(f"Efficient frontier and allocation pie chart for {model} will be displayed here.")
+        st.subheader(f"{model}: Efficient Frontier")
+        if weights_data is not None and model in ["Minimum Variance", "Modern Portfolio Theory"]:
+            # Ensure required columns exist
+            if all(col in weights_data.columns for col in ['risk', 'return', 'sharpe_ratio']):
+                st.plotly_chart(plot_efficient_frontier(weights_data, model, include_rf))
+            else:
+                st.warning(f"Data for {model} is missing required columns ('risk', 'return', 'sharpe_ratio').")
+            break  # Only display one efficient frontier chart
+        else:
+            st.write(f"Efficient frontier for {model} will be displayed here.")
+
+    # Display a single chart for the first weights
+    for model in models_selected:
+        st.subheader(f"{model}: Portfolio Allocation")
+        if first_date_weights is not None and model in ["Minimum Variance"]:
+            # Ensure weights are numeric
+            if pd.api.types.is_numeric_dtype(first_date_weights):
+                try:
+                    st.plotly_chart(plot_allocation(first_date_weights))
+                except ValueError as e:
+                    st.warning(f"Unable to display portfolio allocation for {model}: {e}")
+            else:
+                st.warning(f"Portfolio weights for {model} contain non-numeric values and cannot be displayed.")
+            break  # Only display one allocation pie chart
+        else:
+            st.write(f"Allocation pie chart for {model} will be displayed here.")
 
 with tab2:
     st.header("Backtesting Results")

@@ -2,6 +2,8 @@
 
 An interactive **Streamlit Web App** designed to teach investment and portfolio theory through real-world simulations and historical data. Users can explore how different models allocate portfolios using **S&P 500 stocks**, **US government bonds**, and **US corporate bonds**, and analyze how those portfolios would have performed over time.
 
+🌐 **Try the app live:** [portfolio-optimization-w.streamlit.app](https://portfolio-optimization-w.streamlit.app/)
+
 ---
 
 ## 🎯 Educational Goals
@@ -127,4 +129,4 @@ cd portfolio-optimization
 pip install -r requirements.txt
 
 # Run the Streamlit app
-streamlit run app/main.py
+python -m streamlit run main.py

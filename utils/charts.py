@@ -141,3 +141,77 @@ def plot_quarterly_return_histogram(data, portfolios):
     )
     fig.update_traces(opacity=0.6)
     return fig  # Return figure instead of showing it
+
+
+
+def plot_monthly_weights(weights_df):
+    """
+    Plot monthly portfolio weights for each model.
+
+    Parameters:
+    - weights_df: pd.DataFrame containing monthly weights with columns ['Date', 'Model', 'Ticker', 'Weight'].
+
+    Returns:
+    - fig: Plotly figure object.
+    """
+    # Validate input DataFrame
+    if not isinstance(weights_df, pd.DataFrame):
+        raise ValueError("weights_df must be a pandas DataFrame.")
+    if not all(col in weights_df.columns for col in ['Date', 'Model', 'Ticker', 'Weight']):
+        raise ValueError("weights_df must contain 'Date', 'Model', 'Ticker', and 'Weight' columns.")
+
+    # Create a pivot table for plotting
+    pivot_df = weights_df.pivot_table(index='Date', columns=['Model', 'Ticker'], values='Weight').fillna(0)
+
+    # Create a line plot for each model
+    fig = go.Figure()
+    for model in pivot_df.columns.levels[0]:
+        model_data = pivot_df[model]
+        fig.add_trace(go.Scatter(
+            x=model_data.index,
+            y=model_data.sum(axis=1),  # Sum across tickers for each model
+            mode='lines+markers',
+            name=model
+        ))
+
+    fig.update_layout(
+        title="Monthly Portfolio Weights by Model",
+        xaxis_title="Date",
+        yaxis_title="Weight",
+        legend_title="Models"
+    )
+    
+    return fig  # Return figure instead of showing it
+
+def plot_backtesting_results(performance_dict, sp500_series=None):
+    """
+    Plot backtesting results for multiple models and optionally the S&P 500.
+
+    Parameters:
+    - performance_dict: dict of {model_name: pd.DataFrame} with 'Portfolio' column and DatetimeIndex.
+    - sp500_series: pd.DataFrame or pd.Series for S&P 500 cumulative returns (optional).
+
+    Returns:
+    - fig: Plotly figure object.
+    """
+    import plotly.graph_objects as go
+
+    fig = go.Figure()
+    for model, perf in performance_dict.items():
+        # Always expect perf to be a DataFrame with 'Portfolio' column
+        y = perf['Portfolio'] if isinstance(perf, pd.DataFrame) and 'Portfolio' in perf.columns else perf
+        fig.add_trace(go.Scatter(
+            x=y.index, y=y.values, mode='lines', name=model
+        ))
+    if sp500_series is not None:
+        y = sp500_series['Portfolio'] if isinstance(sp500_series, pd.DataFrame) and 'Portfolio' in sp500_series.columns else sp500_series
+        fig.add_trace(go.Scatter(
+            x=y.index, y=y.values, mode='lines', name='S&P 500', line=dict(dash='dash')
+        ))
+    fig.update_layout(
+        title="Backtesting: Selected Models vs S&P 500",
+        xaxis_title="Date",
+        yaxis_title="Cumulative Return",
+        legend_title="Portfolio"
+    )
+    return fig

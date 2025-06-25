@@ -25,27 +25,27 @@ def optimize_portfolio(df, model, include_rf=False, max_allocation=None, no_shor
 
     if model == "Modern Portfolio Theory":
         ef = EfficientFrontier(mu, S)
-        weights = ef.max_sharpe() if not include_rf else ef.max_sharpe(risk_free_rate=risk_free_rate)
         if max_allocation:
             ef.add_constraint(lambda w: w <= max_allocation)
         if no_short_selling:
             ef.add_constraint(lambda w: w >= 0)
+        weights = ef.max_sharpe() if not include_rf else ef.max_sharpe(risk_free_rate=risk_free_rate)
         portfolio_return, portfolio_volatility, _ = ef.portfolio_performance()
     elif model == "Minimum Variance":
         ef = EfficientFrontier(mu, S)
-        weights = ef.min_volatility()
         if max_allocation:
             ef.add_constraint(lambda w: w <= max_allocation)
         if no_short_selling:
             ef.add_constraint(lambda w: w >= 0)
+        weights = ef.min_volatility()
         portfolio_return, portfolio_volatility, _ = ef.portfolio_performance()
     elif model == "Maximum Sharpe Ratio":
         ef = EfficientFrontier(mu, S)
-        weights = ef.max_sharpe(risk_free_rate=risk_free_rate if include_rf else None)
         if max_allocation:
             ef.add_constraint(lambda w: w <= max_allocation)
         if no_short_selling:
             ef.add_constraint(lambda w: w >= 0)
+        weights = ef.max_sharpe(risk_free_rate=risk_free_rate if include_rf else None)
         portfolio_return, portfolio_volatility, _ = ef.portfolio_performance()
     elif model == "Equal Weight":
         weights = np.ones(len(df.columns)) / len(df.columns)  # Ensure weights is a numpy array

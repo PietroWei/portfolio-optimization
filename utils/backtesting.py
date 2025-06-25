@@ -55,7 +55,12 @@ def run_backtest(daily_returns, weights_df, rebalance_freq, include_rf):
             w = weights_df.loc[last_date].reindex(returns_wide.columns).fillna(0).values
         else:
             w = np.ones(len(returns_wide.columns)) / len(returns_wide.columns)
+        print(f"DEBUG rebalance date: {d}, weights: {w}")
         weights_list.append(w)
+
+    # Check if all weights are the same (potential bug)
+    if all((weights_list[0] == w).all() for w in weights_list):
+        print("WARNING: All rebalance weights are identical. Check if weights_df changes over time.")
 
     # Backtest loop
     portfolio = pd.Series(index=trading_dates, dtype=float)
@@ -66,6 +71,7 @@ def run_backtest(daily_returns, weights_df, rebalance_freq, include_rf):
         w = weights_list[i]
         period_idx = trading_dates.get_loc(start)
         next_idx = trading_dates.get_loc(end)
+        print(f"DEBUG: Applying weights from {start} to {end} (idx {period_idx} to {next_idx})")
         for j in range(period_idx+1, next_idx+1):
             prev_val = portfolio.iloc[j-1]
             ret = (returns_wide.iloc[j] * w).sum()
